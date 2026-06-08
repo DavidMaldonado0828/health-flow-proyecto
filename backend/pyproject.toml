@@ -1,0 +1,17 @@
+[tool.ruff]
+# Longitud máxima de línea (estándar de la industria)
+line-length = 88
+
+# Seleccionar reglas automáticas:
+# E: Errores (básicos de Python)
+# F: Pyflakes (detecta errores de variables no usadas)
+# I: isort (ordena tus importaciones automáticamente)
+select = ["E", "F", "I"]
+
+# Ignorar reglas que a veces son molestas
+ignore = []
+
+[tool.ruff.format]
+# Formato automático para que todo se vea igual
+quote-style = "double"
+indent-style = "space"
