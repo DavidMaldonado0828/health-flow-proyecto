@@ -41,6 +41,18 @@ El mensaje debe seguir el formato: `tipo(alcance): descripción breve`.
 * **Checks:** El PR no puede fusionarse si las pruebas o el linter (`Ruff`) fallan.
 ---
 
+## 📁 Estructura del Repositorio
+healthflow/
+├── backend/      # FastAPI + PostgreSQL
+├── frontend/     # React + Vite
+├── sql/
+│   ├── ddl/      # Scripts de creación de tablas
+│   ├── dml/      # Datos de prueba
+│   └── queries/  # Consultas de demostración
+└── docs/         # Documentación técnica
+
+---
+
 ## 🛠 Backend y Arquitectura
 
 El backend está construido con **FastAPI**, diseñado para ser escalable y modular.
@@ -79,10 +91,6 @@ No usamos una estructura plana; dividimos el sistema por áreas de negocio. Cada
 * **Auth:** Gestión de usuarios y seguridad.
 * **Pacientes:** CRUD y gestión de datos.
 * **Médicos:** Gestión de personal y disponibilidad.
-Citas: Agendamiento.
-
-Historia Clínica: Registros médicos.
-
-Notificaciones: Sistema de alertas.
-
-Documento mantenido por el equipo de Health Flow.
+* **Citas:** Agendamiento y seguimiento.
+* **Historia Clínica:** Registros médicos por paciente.
+* **Notificaciones:** Sistema de alertas internas.
