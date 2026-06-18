@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen text-stone-800 antialiased;
+    background: linear-gradient(
+      165deg,
+      #f5ebe8 0%,
+      #f5d5d5 30%,
+      #efc4c4 55%,
+      #e8a8a8 80%,
+      #df8f8f 100%
+    );
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .app-main {
+    @apply min-h-0;
+  }
+
+  .nav-top-item {
+    @apply rounded-2xl px-3 py-2 text-sm font-medium text-red-900/70 transition-all duration-200;
+    box-shadow: 0 1px 3px transparent;
+  }
+  .nav-top-item:hover {
+    @apply bg-red-100/80 text-red-900;
+    box-shadow: 0 2px 8px rgba(185, 28, 28, 0.12);
+    transform: translateY(-1px);
+  }
+  .nav-top-item-active {
+    @apply bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md;
+    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.35);
+  }
+  .nav-top-item-active:hover {
+    @apply from-red-700 to-red-800 text-white;
+    transform: translateY(-1px);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    box-shadow: 0 3px 10px rgba(185, 28, 28, 0.15);
+  }
+  .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(185, 28, 28, 0.22);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(185, 28, 28, 0.15);
+  }
+
+  .btn-primary {
+    @apply btn text-white focus:ring-red-500;
+    background: linear-gradient(145deg, #ef4444 0%, #dc2626 45%, #b91c1c 100%);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    box-shadow: 0 6px 20px rgba(185, 28, 28, 0.45);
+  }
+
+  .btn-secondary {
+    @apply btn border-2 border-red-300/80 bg-white/95 text-red-800 focus:ring-red-400;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    @apply border-red-400 bg-red-50;
+  }
+
+  .btn-danger {
+    @apply btn text-white focus:ring-red-600;
+    background: linear-gradient(145deg, #b91c1c 0%, #7f1d1d 100%);
+    box-shadow: 0 4px 12px rgba(127, 29, 29, 0.4);
+  }
+
+  .btn-ghost {
+    @apply btn bg-white/80 text-red-800 shadow-sm hover:bg-white focus:ring-red-300;
+  }
+
+  .btn-sm {
+    @apply rounded-xl px-3 py-1.5 text-xs;
+  }
+
+  .input-field {
+    @apply w-full rounded-2xl border-2 border-red-200/80 bg-white/95 px-4 py-2.5 text-sm shadow-sm transition placeholder:text-stone-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20;
+  }
+  .card {
+  @apply rounded-xl border border-red-100/80 bg-white/95 p-6 shadow-md backdrop-blur-sm;
+}
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .auth-card {
+    @apply rounded-card border border-red-100 bg-white/95 p-8 shadow-interactive backdrop-blur-md;
+  }
+}
