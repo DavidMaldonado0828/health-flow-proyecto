@@ -2,6 +2,7 @@
 # Longitud máxima de línea (estándar de la industria)
 line-length = 88
 
+[tool.ruff.lint]
 # Seleccionar reglas automáticas:
 # E: Errores (básicos de Python)
 # F: Pyflakes (detecta errores de variables no usadas)

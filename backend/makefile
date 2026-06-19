@@ -78,3 +78,23 @@ test-v:
 # Genera el requirements.txt con las dependencias actuales
 freeze:
 	pip freeze > requirements.txt
+
+# ============================================
+# BASE DE DATOS
+# ============================================
+
+# Crea usuario, BD y ejecuta todas las tablas (solo una vez)
+setup:
+	psql -U postgres -f ../sql/ddl/00_create_database.sql
+	psql -U healthflow_admin -d healthflow_db -f ../sql/ddl/01_create_tables.sql
+
+# Solo crea las tablas (si ya existe la BD)
+tables:
+	psql -U healthflow_admin -d healthflow_db -f ../sql/ddl/01_create_tables.sql
+
+# Borra y recrea todo desde cero
+reset:
+	psql -U postgres -c "DROP DATABASE IF EXISTS healthflow_db;"
+	psql -U postgres -c "DROP USER IF EXISTS healthflow_admin;"
+	psql -U postgres -f ../sql/ddl/00_create_database.sql
+	psql -U healthflow_admin -d healthflow_db -f ../sql/ddl/01_create_tables.sql
