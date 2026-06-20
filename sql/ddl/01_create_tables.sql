@@ -3,32 +3,6 @@
 -- Versión: 1.0
 -- Motor: PostgreSQL 12+
 -- ============================================
--- ============================================
--- ÍNDICES PARA OPTIMIZACIÓN (Performance)
--- ============================================
-
--- 1. Índices para búsqueda de usuarios y pacientes (búsquedas frecuentes)
-CREATE INDEX idx_users_username ON Users(username);
-CREATE INDEX idx_patient_lastname ON Patient(last_name);
-CREATE INDEX idx_doctor_license ON Doctor(license_number);
-
--- 2. Índices para fechas de citas (vital para reportes y consultas por rango)
-CREATE INDEX idx_appointment_date ON Medical_Appointment(appointment_date);
-
--- 3. Índices en Foreign Keys (CRÍTICO para acelerar los JOINs entre tablas)
--
-CREATE INDEX idx_fk_users_role ON Users(role_id);
-CREATE INDEX idx_fk_doctor_specialty ON Doctor(specialty_id);
-CREATE INDEX idx_fk_doctor_schedule ON Doctor(schedule_id);
-CREATE INDEX idx_fk_appointment_patient ON Medical_Appointment(patient_id);
-CREATE INDEX idx_fk_appointment_doctor ON Medical_Appointment(doctor_id);
-CREATE INDEX idx_fk_appointment_office ON Medical_Appointment(office_id);
-CREATE INDEX idx_fk_history_appointment ON Medical_History(appointment_id);
-
--- 4. Índice especial para la auditoría (JSONB)
-
-CREATE INDEX idx_audit_table_name ON Audit_Log(table_name);
-CREATE INDEX idx_audit_performed_at ON Audit_Log(performed_at);
 
 -- =====================================================
 -- TIPOS PERSONALIZADOS (ENUMS correctos en PostgreSQL)
@@ -407,30 +381,4 @@ COMMENT ON COLUMN Audit_Log.performed_at   IS 'Fecha y hora exacta en que se eje
 COMMENT ON COLUMN Audit_Log.ip_address     IS 'Dirección IP desde donde se ejecutó la operación (opcional)';
 COMMENT ON COLUMN Audit_Log.user_id        IS 'FK - Usuario que ejecutó la operación. NULL si fue acción del sistema';
 
--- ============================================
--- FUNCIONES Y TRIGGERS DE AUDITORÍA
--- ============================================
 
-CREATE OR REPLACE FUNCTION fn_audit_log() RETURNS trigger AS $$
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO Audit_Log(table_name, operation_type, new_value, performed_at, user_id)
-        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(NEW), CURRENT_TIMESTAMP, NULL);
-        RETURN NEW;
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO Audit_Log(table_name, operation_type, old_value, new_value, performed_at, user_id)
-        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW), CURRENT_TIMESTAMP, NULL);
-        RETURN NEW;
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO Audit_Log(table_name, operation_type, old_value, performed_at, user_id)
-        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), CURRENT_TIMESTAMP, NULL);
-        RETURN OLD;
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_audit_users
-AFTER INSERT OR UPDATE OR DELETE ON Users
-FOR EACH ROW
-EXECUTE FUNCTION fn_audit_log();
