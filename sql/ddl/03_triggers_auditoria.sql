@@ -3,18 +3,28 @@
 -- ============================================
 
 CREATE OR REPLACE FUNCTION fn_audit_log() RETURNS trigger AS $$
+DECLARE
+    v_user_id INTEGER;
 BEGIN
+    -- Intentamos leer el user_id desde la variable de sesión 'audit.user_id'.
+    -- La aplicación puede hacer: SELECT set_config('audit.user_id', '42', true);
+    BEGIN
+        v_user_id := NULLIF(current_setting('audit.user_id', true), '')::INTEGER;
+    EXCEPTION WHEN others THEN
+        v_user_id := NULL;
+    END;
+
     IF TG_OP = 'INSERT' THEN
         INSERT INTO Audit_Log(table_name, operation_type, new_value, performed_at, user_id)
-        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(NEW), CURRENT_TIMESTAMP, NULL);
+        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(NEW), CURRENT_TIMESTAMP, v_user_id);
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO Audit_Log(table_name, operation_type, old_value, new_value, performed_at, user_id)
-        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW), CURRENT_TIMESTAMP, NULL);
+        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW), CURRENT_TIMESTAMP, v_user_id);
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO Audit_Log(table_name, operation_type, old_value, performed_at, user_id)
-        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), CURRENT_TIMESTAMP, NULL);
+        VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), CURRENT_TIMESTAMP, v_user_id);
         RETURN OLD;
     END IF;
     RETURN NULL;
