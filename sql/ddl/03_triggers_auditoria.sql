@@ -15,15 +15,15 @@ BEGIN
     END;
 
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO Audit_Log(table_name, operation_type, new_value, performed_at, user_id)
+        INSERT INTO Audit_Logs(table_name, operation_type, new_value, performed_at, user_id)
         VALUES (TG_TABLE_NAME, TG_OP, row_to_json(NEW), CURRENT_TIMESTAMP, v_user_id);
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO Audit_Log(table_name, operation_type, old_value, new_value, performed_at, user_id)
+        INSERT INTO Audit_Logs(table_name, operation_type, old_value, new_value, performed_at, user_id)
         VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW), CURRENT_TIMESTAMP, v_user_id);
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO Audit_Log(table_name, operation_type, old_value, performed_at, user_id)
+        INSERT INTO Audit_Logs(table_name, operation_type, old_value, performed_at, user_id)
         VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), CURRENT_TIMESTAMP, v_user_id);
         RETURN OLD;
     END IF;
@@ -38,32 +38,32 @@ AFTER INSERT OR UPDATE OR DELETE ON Users
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
  
--- Patient
-CREATE TRIGGER trg_audit_patient
-AFTER INSERT OR UPDATE OR DELETE ON Patient
+-- Patients
+CREATE TRIGGER trg_audit_patients
+AFTER INSERT OR UPDATE OR DELETE ON Patients
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
  
--- Doctor
-CREATE TRIGGER trg_audit_doctor
-AFTER INSERT OR UPDATE OR DELETE ON Doctor
+-- Doctors
+CREATE TRIGGER trg_audit_doctors
+AFTER INSERT OR UPDATE OR DELETE ON Doctors
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
  
--- Medical_Appointment
-CREATE TRIGGER trg_audit_appointment
-AFTER INSERT OR UPDATE OR DELETE ON Medical_Appointment
+-- Medical_Appointments
+CREATE TRIGGER trg_audit_medical_appointments
+AFTER INSERT OR UPDATE OR DELETE ON Medical_Appointments
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
  
--- Medical_History
-CREATE TRIGGER trg_audit_medical_history
-AFTER INSERT OR UPDATE OR DELETE ON Medical_History
+-- Medical_Histories
+CREATE TRIGGER trg_audit_medical_histories
+AFTER INSERT OR UPDATE OR DELETE ON Medical_Histories
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
  
--- Prescription
-CREATE TRIGGER trg_audit_prescription
-AFTER INSERT OR UPDATE OR DELETE ON Prescription
+-- Prescriptions
+CREATE TRIGGER trg_audit_prescriptions
+AFTER INSERT OR UPDATE OR DELETE ON Prescriptions
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
