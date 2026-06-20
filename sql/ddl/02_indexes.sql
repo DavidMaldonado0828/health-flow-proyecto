@@ -11,7 +11,6 @@ CREATE INDEX idx_doctors_license ON Doctors(license_number);
 CREATE INDEX idx_appointment_date ON Medical_Appointments(appointment_date);
 
 -- 3. Índices en Foreign Keys (CRÍTICO para acelerar los JOINs entre tablas)
--
 CREATE INDEX idx_fk_users_role ON Users(role_id);
 CREATE INDEX idx_fk_doctors_specialty ON Doctors(specialty_id);
 CREATE INDEX idx_fk_doctors_schedule ON Doctors(schedule_id);

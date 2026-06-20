@@ -80,33 +80,33 @@ freeze:
 	pip freeze > requirements.txt
 
 # ============================================
-# BASE DE DATOS
+# BASE DE DATOS (Supabase - nube)
 # ============================================
 
-# Crea usuario, BD y ejecuta todos los scripts en orden (solo una vez)
-setup:
-	psql -U postgres -f ../sql/ddl/00_create_database.sql
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/01_create_tables.sql
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/02_indexes.sql
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/03_triggers_auditoria.sql
+# URL de conexión a Supabase, ajusta tu contraseña real
+SUPABASE_URL = postgresql://postgres:HealthFlow2026DB@db.kqzlukceyihuapoojezb.supabase.co:5432/postgres
 
-# Solo crea las tablas (si ya existe la BD)
+# Crea las tablas, índices y triggers en Supabase (primera vez)
+setup:
+	psql "$(SUPABASE_URL)" -f sql/ddl/01_create_tables.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/02_indexes.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/03_triggers_auditoria.sql
+
+# Solo crea las tablas
 tables:
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/01_create_tables.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/01_create_tables.sql
 
 # Solo crea los índices
 indexes:
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/02_indexes.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/02_indexes.sql
 
 # Solo crea las funciones y triggers de auditoría
 triggers:
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/03_triggers_auditoria.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/03_triggers_auditoria.sql
 
-# Borra y recrea todo desde cero
+# Borra todas las tablas en Supabase y las vuelve a crear desde cero
 reset:
-	psql -U postgres -c "DROP DATABASE IF EXISTS healthflow_db;"
-	psql -U postgres -c "DROP USER IF EXISTS healthflow_admin;"
-	psql -U postgres -f sql/ddl/00_create_database.sql
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/01_create_tables.sql
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/02_indexes.sql
-	psql -U healthflow_admin -d healthflow_db -f sql/ddl/03_triggers_auditoria.sql
+	psql "$(SUPABASE_URL)" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+	psql "$(SUPABASE_URL)" -f sql/ddl/01_create_tables.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/02_indexes.sql
+	psql "$(SUPABASE_URL)" -f sql/ddl/03_triggers_auditoria.sql

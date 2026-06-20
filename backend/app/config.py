@@ -2,10 +2,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Base de datos
-    DATABASE_URL: str = (
-        "postgresql://healthflow_admin:tu_password@localhost:5432/healthflow_db"
-    )
+    # Base de datos - obligatorio, sin valor por defecto
+    database_url: str
 
     # JWT - Seguridad
     jwt_secret: str
