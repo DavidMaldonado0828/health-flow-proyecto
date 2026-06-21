@@ -1,159 +1,237 @@
 // =====================================================================
-// 1. MÓDULO DE USUARIOS, SEGURIDAD Y COMPLEMENTOS
+// HEALTHFLOW - DBML MODEL (PostgreSQL 12+)
 // =====================================================================
 
+Enum day_name_type {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+Enum appointment_status {
+  Scheduled
+  Completed
+  Cancelled
+}
+
+Enum operation_type {
+  INSERT
+  UPDATE
+  DELETE
+}
+
+// ============================================
+// DOMINIO: USUARIOS Y ACCESO
+// ============================================
+
 Table Roles {
-  id_role int [pk, increment]
-  name varchar(50) [not null, unique] // 'Doctor', 'Patient', 'Admin'
-  description text
+  role_id int [pk, increment, note: 'Identificador único del rol']
+  name varchar(50) [not null, unique, note: 'ej: admin, doctor, receptionist, patient']
+  
+  Note: 'Catálogo de roles del sistema'
 }
 
 Table Users {
-  id_user int [pk, increment]
+  user_id int [pk, increment]
   username varchar(100) [not null, unique]
-  first_name varchar(100) [not null]
-  last_name varchar(100) [not null]
+  password varchar(255) [not null, note: 'Cifrada con bcrypt']
   email varchar(150) [not null, unique]
-  password_hash varchar(255) [not null]
-  id_role int [ref: > Roles.id_role, not null]
-  created_at timestamp [default: `now()`, not null]
+  active boolean [default: true, note: 'Eliminación lógica']
+  create_date timestamp [default: `CURRENT_TIMESTAMP`]
+  role_id int [ref: > Roles.role_id, not null]
+  
+  Note: 'Usuarios del sistema con credenciales de acceso'
 }
 
 Table User_Phones {
-  id_phone int [pk, increment]
-  id_user int [ref: > Users.id_user, not null]
+  phone_id int [pk, increment]
+  user_id int [ref: > Users.user_id, not null]
   phone_number varchar(20) [not null]
+  phone_type varchar(20) [note: 'móvil, fijo, trabajo']
+  is_primary boolean [default: false]
+  
+  Note: 'Teléfonos asociados a un usuario (1:N)'
+}
+
+Table Document_Types {
+  doc_type_id int [pk, increment]
+  name varchar(50) [not null, unique, note: 'CC, CE, Passport, TI']
+  
+  Note: 'Catálogo de tipos de documento'
 }
 
 Table User_Documents {
-  id_document int [pk, increment]
-  id_user int [ref: > Users.id_user, not null]
-  document_type varchar(30) [not null] // 'CC', 'CE', 'Passport'
-  document_number varchar(50) [not null, unique]
+  user_doc_id int [pk, increment]
+  user_id int [ref: > Users.user_id, not null]
+  doc_type_id int [ref: > Document_Types.doc_type_id, not null]
+  document_number varchar(50) [not null]
+  
+  Note: 'Documentos de identidad de los usuarios'
 }
 
-Table Acudiente {
-  id_acudiente int [pk, increment]
-  first_name varchar(100) [not null]
-  last_name varchar(100) [not null]
-  phone varchar(20) [not null]
-  email varchar(150)
-  relationship varchar(50) [not null]
-}
+// ============================================
+// DOMINIO: PERSONAL CLÍNICO
+// ============================================
 
-Table Patient {
-  id_patient int [pk, increment]
-  id_user int [ref: > Users.id_user, not null, unique]
-  id_acudiente int [ref: > Acudiente.id_acudiente]
-  birth_date date [not null]
-  blood_type varchar(5)
-  address text
-}
-
-Table Audit_Log {
-  id_log int [pk, increment]
-  id_user int [ref: > Users.id_user, not null]
-  table_name varchar(100) [not null]
-  operation varchar(50) [not null] // 'INSERT', 'UPDATE', 'DELETE'
-  old_values jsonb
-  new_values jsonb
-  executed_at timestamp [default: `now()`, not null]
-}
-
-// =====================================================================
-// 2. MÓDULO DE INFRAESTRUCTURA HOSPITALARIA Y ESPECIALIDADES
-// =====================================================================
-
-Table Departament {
-  id_departament int [pk, increment]
-  name varchar(100) [not null]
-  description text
-}
-
-Table Specialty {
-  id_specialty int [pk, increment]
-  name varchar(100) [not null]
-  id_departament int [ref: > Departament.id_departament, not null]
-}
-
-Table Medical_Office {
-  id_office int [pk, increment]
-  office_number varchar(50) [not null]
-  floor smallint
-  is_available boolean [default: true, not null]
-}
-
-// TABLA INTERMEDIA: Relación Muchos a Muchos entre Oficinas y Especialidades
-Table Office_Specialties {
-  id_office int [ref: > Medical_Office.id_office, pk]
-  id_specialty int [ref: > Specialty.id_specialty, pk]
-  assigned_at timestamp [default: `now()`]
-}
-
-// =====================================================================
-// 3. MÓDULO DE MÉDICOS Y HORARIOS
-// =====================================================================
-
-Table Doctor {
-  id_doctor int [pk, increment]
-  id_user int [ref: > Users.id_user, not null, unique]
-  id_specialty int [ref: > Specialty.id_specialty, not null]
-  license_number varchar(50) [not null, unique]
-}
-
-Table Schedule {
-  id_schedule int [pk, increment]
-  id_doctor int [ref: > Doctor.id_doctor, not null]
-  day varchar(20) [not null] // 'Monday', 'Tuesday', etc.
+Table Schedules {
+  schedule_id int [pk, increment]
+  day_of_week day_name_type [not null]
   start_time time [not null]
   end_time time [not null]
+  
+  Note: 'Horarios base de disponibilidad'
 }
 
-// =====================================================================
-// 4. MÓDULO DE CITAS, HISTORIAL CLÍNICO Y TRATAMIENTOS
-// =====================================================================
+Table Departments {
+  department_id int [pk, increment]
+  name varchar(100) [not null]
+  location varchar(150)
+  
+  Note: 'Áreas del hospital (Cardiología, Pediatría...)'
+}
 
-Table Medical_Appointment {
-  id_appointment int [pk, increment]
-  id_patient int [ref: > Patient.id_patient, not null]
-  id_doctor int [ref: > Doctor.id_doctor, not null]
-  id_office int [ref: > Medical_Office.id_office, not null]
-  date_time timestamp [not null]
-  status varchar(50) [default: 'Scheduled', not null] // 'Scheduled', 'Completed', 'Cancelled'
+Table Specialties {
+  specialty_id int [pk, increment]
+  name varchar(100) [not null]
+  description text
+  department_id int [ref: > Departments.department_id, not null]
+  
+  Note: 'Especialidades médicas por departamento'
+}
+
+Table Doctors {
+  doctor_id int [pk, increment]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  license_number varchar(50) [not null, unique]
+  user_id int [ref: - Users.user_id, not null, unique, note: 'Relación 1:1']
+  schedule_id int [ref: > Schedules.schedule_id, not null]
+  specialty_id int [ref: > Specialties.specialty_id, not null]
+  
+  Note: 'Perfil profesional de los médicos'
+}
+
+// ============================================
+// DOMINIO: INFRAESTRUCTURA HOSPITALARIA
+// ============================================
+
+Table Medical_Offices {
+  office_id int [pk, increment]
+  name varchar(100) [not null]
+  floor varchar(20)
+  active boolean [default: true]
+  
+  Note: 'Consultorios o salas físicas'
+}
+
+Table Speciality_Offices {
+  specialty_id int [ref: > Specialties.specialty_id]
+  office_id int [ref: > Medical_Offices.office_id]
+  
+  indexes {
+    (specialty_id, office_id) [pk]
+  }
+  
+  Note: 'Tabla puente N:M (Especialidades que atiende cada consultorio)'
+}
+
+// ============================================
+// DOMINIO: PACIENTES
+// ============================================
+
+Table Guardians {
+  guardian_id int [pk, increment]
+  full_name varchar(150) [not null]
+  kinship varchar(50) [note: 'Padre, madre, tutor']
+  document_number varchar(50) [not null]
+  
+  Note: 'Acudientes o responsables legales'
+}
+
+Table Patients {
+  patient_id int [pk, increment]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  date_of_birth date [not null]
+  gender varchar(20)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  user_id int [ref: - Users.user_id, not null, unique, note: 'Relación 1:1']
+  guardian_id int [ref: > Guardians.guardian_id]
+  
+  Note: 'Expediente de pacientes'
+}
+
+// ============================================
+// DOMINIO: ATENCIÓN MÉDICA
+// ============================================
+
+Table Medical_Appointments {
+  appointment_id int [pk, increment]
+  appointment_date date [not null]
+  status appointment_status [not null, default: 'Scheduled']
   reason text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  patient_id int [ref: > Patients.patient_id, not null]
+  doctor_id int [ref: > Doctors.doctor_id, not null]
+  office_id int [ref: > Medical_Offices.office_id, not null]
+  
+  Note: 'Citas médicas agendadas'
 }
 
-Table Medical_History {
-  id_history int [pk, increment]
-  id_appointment int [ref: - Medical_Appointment.id_appointment, not null, unique] // Relación 1:1 estricta
-  diagnosis text [not null]
-  treatment text
-  general_notes text
-  date_created timestamp [default: `now()`, not null]
+Table Medical_Histories {
+  medical_history_id int [pk, increment]
+  symptoms text
+  diagnosis text
+  treatment_plan text
+  notes text
+  consultation_date date [not null]
+  appointment_id int [ref: - Medical_Appointments.appointment_id, not null, unique, note: 'Relación 1:1 con la cita']
+  
+  Note: 'Historia clínica resultante de una cita'
 }
 
-Table Medicine {
-  id_medicine int [pk, increment]
+Table Medicines {
+  medicine_id int [pk, increment]
   name varchar(150) [not null]
+  presentation varchar(100)
+  concentration varchar(50)
   active_ingredient varchar(150)
-  dosage_form varchar(50) [not null]
-  stock int [default: 0, not null]
+  
+  Note: 'Catálogo de farmacia'
 }
 
-// TABLA INTERMEDIA: Receta / Prescripción (N:M)
-Table History_Medicines_Prescriptions {
-  id_history int [ref: > Medical_History.id_history, pk]
-  id_medicine int [ref: > Medicine.id_medicine, pk]
-  dosage varchar(100) [not null]
-  frequency varchar(100) [not null]
-  duration varchar(50) [not null]
+Table Prescriptions {
+  medical_history_id int [ref: > Medical_Histories.medical_history_id]
+  medicine_id int [ref: > Medicines.medicine_id]
+  dose varchar(50)
+  frequency varchar(50)
+  duration varchar(50)
+  
+  indexes {
+    (medical_history_id, medicine_id) [pk]
+  }
+  
+  Note: 'Fórmula médica / Prescripción de la consulta (N:M)'
 }
 
-Table AI_Analysis {
-  id_analysis int [pk, increment]
-  id_history int [ref: > Medical_History.id_history, not null]
-  model_used varchar(100) [not null]
-  suggestion text [not null]
-  confidence numeric
-  generated_at timestamp [default: `now()`, not null]
+
+// ============================================
+// DOMINIO: AUDITORÍA
+// ============================================
+
+Table Audit_Logs {
+  audit_id int [pk, increment]
+  table_name varchar(100) [not null]
+  operation_type operation_type [not null]
+  old_value jsonb
+  new_value jsonb
+  performed_at timestamp [default: `CURRENT_TIMESTAMP`]
+  ip_address varchar(45)
+  user_id int [ref: > Users.user_id, note: 'Puede ser nulo si fue el sistema']
+  
+  Note: 'Bitácora de movimientos transaccionales'
 }
