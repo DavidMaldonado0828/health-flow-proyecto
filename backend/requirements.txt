@@ -12,3 +12,5 @@ python-dotenv
 alembic
 ruff
 sqlmodel
+pydantic[email]
+bcrypt==3.2.2
