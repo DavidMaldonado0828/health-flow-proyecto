@@ -122,3 +122,28 @@ FROM Audit_Logs al
 WHERE al.table_name IN ('medical_offices', 'speciality_offices')
 ORDER BY al.performed_at DESC
 LIMIT 20;
+-- -----------------------------------------------
+-- 8. Usuarios con mayor actividad en el sistema (Auditoría)
+--    Análisis de carga de trabajo basada en el log de auditoría
+-- -----------------------------------------------
+SELECT user_id, COUNT(*) as total_operations, MAX(performed_at) as last_activity
+FROM Audit_Logs WHERE user_id IS NOT NULL
+GROUP BY user_id ORDER BY total_operations DESC LIMIT 5;
+-- -----------------------------------------------
+-- 9. Distribución de usuarios por Rol
+--    Uso de funciones de ventana (SUM OVER) para calcular porcentajes
+-- -----------------------------------------------
+SELECT r.name as role_name, COUNT(u.user_id) as total_users,
+       ROUND(100.0 * COUNT(u.user_id) / SUM(COUNT(u.user_id)) OVER(), 2) as percentage
+FROM Roles r
+LEFT JOIN Users u ON u.role_id = r.role_id
+GROUP BY r.name ORDER BY total_users DESC;
+-- -----------------------------------------------
+-- 10. Médicos sin citas asignadas
+--     Identificación de médicos inactivos mediante subconsulta
+-- -----------------------------------------------
+SELECT u.username, d.specialty_id
+FROM Users u
+JOIN Doctors d ON u.user_id = d.user_id
+WHERE u.user_id NOT IN (SELECT DISTINCT doctor_id FROM Medical_Appointments WHERE doctor_id IS NOT NULL)
+ORDER BY u.username;
