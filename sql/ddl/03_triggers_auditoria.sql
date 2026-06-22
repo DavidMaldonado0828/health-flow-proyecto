@@ -66,3 +66,21 @@ CREATE TRIGGER trg_audit_medical_histories AFTER INSERT OR UPDATE OR DELETE ON M
 
 DROP TRIGGER IF EXISTS trg_audit_prescriptions ON Prescriptions;
 CREATE TRIGGER trg_audit_prescriptions AFTER INSERT OR UPDATE OR DELETE ON Prescriptions FOR EACH ROW EXECUTE FUNCTION fn_audit_log();
+
+-- =============================================================================
+-- TRIGGERS ADICIONALES - DOMINIO INTEGRACIÓN COMPLETADA
+-- =============================================================================
+
+-- Medical_Offices
+DROP TRIGGER IF EXISTS trg_audit_medical_offices ON Medical_Offices;
+CREATE TRIGGER trg_audit_medical_offices
+AFTER INSERT OR UPDATE OR DELETE ON Medical_Offices
+FOR EACH ROW
+EXECUTE FUNCTION fn_audit_log();
+
+-- Speciality_Offices
+DROP TRIGGER IF EXISTS trg_audit_speciality_offices ON Speciality_Offices;
+CREATE TRIGGER trg_audit_speciality_offices
+AFTER INSERT OR UPDATE OR DELETE ON Speciality_Offices
+FOR EACH ROW
+EXECUTE FUNCTION fn_audit_log();
