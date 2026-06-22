@@ -68,20 +68,22 @@ ORDER BY total_appointments DESC;
 
 --Consulta 6 — Especialidad con más consultorios (subconsulta correlacionada + escalar)
 
+WITH office_counts AS (
+    SELECT specialty_id, COUNT(*) AS total_offices
+    FROM Speciality_Offices
+    GROUP BY specialty_id
+),
+max_count AS (
+    SELECT MAX(total_offices) AS max_total_offices
+    FROM office_counts
+)
 SELECT
     s.specialty_id,
     s.name,
-    (SELECT COUNT(*) FROM Speciality_Offices so
-        WHERE so.specialty_id = s.specialty_id) AS total_offices
+    oc.total_offices
 FROM Specialties s
-WHERE (SELECT COUNT(*) FROM Speciality_Offices so
-        WHERE so.specialty_id = s.specialty_id) =
-      (SELECT MAX(office_count) FROM (
-            SELECT COUNT(*) AS office_count
-            FROM Speciality_Offices
-            GROUP BY specialty_id
-        ) AS counts
-      );
+JOIN office_counts oc ON oc.specialty_id = s.specialty_id
+JOIN max_count mc ON oc.total_offices = mc.max_total_offices;
 
 
 --Consulta 7 — Verificación de auditoría sobre el dominio (depende de la Parte 2)
