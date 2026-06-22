@@ -1,153 +1,163 @@
 erDiagram
-    ROLES {
-        int id_role PK
+    Roles {
+        int role_id PK
         string name
-        string description
     }
 
-    USERS {
-        int id_user PK
+    Users {
+        int user_id PK
         string username
+        string password
         string email
-        string password_hash
-        int id_role FK
+        boolean active
+        timestamp create_date
+        int role_id FK
     }
 
-    USER_TELEPHONES {
-        int id_telephone PK
-        int id_user FK
-        string telephone_number
+    User_Phones {
+        int phone_id PK
+        int user_id FK
+        string phone_number
+        string phone_type
+        boolean is_primary
     }
 
-    DOCUMENT_TYPE {
+    Document_Types {
         int doc_type_id PK
         string name "UNIQUE"
     }
 
-    USER_DOCUMENTS {
+    User_Documents {
         int user_doc_id PK
         int user_id FK
         int doc_type_id FK
         string document_number
     }
 
-    AUDIT_LOGS {
-        int id_log PK
-        int id_user FK
-        string table_affected
-        string action_type
-        string old_value
-        string new_value
-        timestamp timestamp
-    }
-
-    DEPARTMENTS {
-        int id_department PK
-        string name
-        string description
-    }
-
-    SPECIALTIES {
-        int id_specialty PK
-        string name
-        int id_department FK
-    }
-
-    SCHEDULES {
-        int id_schedule PK
-        string day_of_week
+    Schedules {
+        int schedule_id PK
+        day_name_type day_of_week
         time start_time
         time end_time
     }
 
-    DOCTORS {
-        int id_doctor PK
-        int id_user FK "UNIQUE"
-        int id_specialty FK
-        int id_schedule FK
+    Departments {
+        int department_id PK
+        string name
+        string location
+    }
+
+    Specialties {
+        int specialty_id PK
+        string name
+        string description
+        int department_id FK
+    }
+
+    Doctors {
+        int doctor_id PK
+        string first_name
+        string last_name
         string license_number
+        int user_id FK "UNIQUE"
+        int schedule_id FK
+        int specialty_id FK
     }
 
-    GUARDIANS {
-        int id_guardian PK
+    Medical_Offices {
+        int office_id PK
         string name
-        string relationship
-        string contact_info
+        string floor
+        boolean active
     }
 
-    PATIENTS {
-        int id_patient PK
-        int id_user FK "UNIQUE"
-        int id_guardian FK
-        date birth_date
-        string blood_type
+    Speciality_Offices {
+        int specialty_id FK
+        int office_id FK
     }
 
-    MEDICAL_OFFICES {
-        int id_office PK
-        string office_number
-        int floor
+    Guardians {
+        int guardian_id PK
+        string full_name
+        string kinship
+        string document_number
     }
 
-    SPECIALTY_OFFICES {
-        int id_specialty PK_FK
-        int id_office PK_FK
+    Patients {
+        int patient_id PK
+        string first_name
+        string last_name
+        date date_of_birth
+        string gender
+        timestamp created_at
+        int user_id FK "UNIQUE"
+        int guardian_id FK
     }
 
-    MEDICAL_APPOINTMENTS {
-        int id_appointment PK
-        datetime date_time
-        string status
-        int id_doctor FK
-        int id_patient FK
-        int id_office FK
+    Medical_Appointments {
+        int appointment_id PK
+        date appointment_date
+        appointment_status status
+        text reason
+        timestamp created_at
+        int patient_id FK
+        int doctor_id FK
+        int office_id FK
     }
 
-    MEDICAL_HISTORIES {
-        int id_history PK
-        int id_appointment FK "UNIQUE"
-        string general_notes
-        string diagnosis
-        date date_created
+    Medical_Histories {
+        int medical_history_id PK
+        text symptoms
+        text diagnosis
+        text treatment_plan
+        text notes
+        date consultation_date
+        int appointment_id FK "UNIQUE"
     }
 
-    MEDICINES {
-        int id_medicine PK
+    Medicines {
+        int medicine_id PK
         string name
+        string presentation
+        string concentration
         string active_ingredient
-        int stock
     }
 
-    PRESCRIBES {
-        int id_history PK_FK
-        int id_medicine PK_FK
-        string dosage
+    Prescriptions {
+        int medical_history_id PK
+        int medicine_id PK
+        string dose
         string frequency
         string duration
     }
 
-    ROLES ||--o{ USERS : "asigna_a"
-    USERS ||--o{ USER_TELEPHONES : "tiene"
-    USERS ||--o{ USER_DOCUMENTS : "posee"
-    DOCUMENT_TYPE ||--o{ USER_DOCUMENTS : "clasifica"
-    USERS ||--o{ AUDIT_LOGS : "genera"
-    
-    DEPARTMENTS ||--o{ SPECIALTIES : "gestiona"
-    SPECIALTIES ||--o{ DOCTORS : "asigna"
-    SCHEDULES ||--o{ DOCTORS : "asigna"
-    USERS ||--|| DOCTORS : "ejerce_rol"
-    
-    GUARDIANS ||--o{ PATIENTS : "protege"
-    USERS ||--|| PATIENTS : "ejerce_rol"
-    
-    SPECIALTIES ||--o{ SPECIALTY_OFFICES : "asociada"
-    MEDICAL_OFFICES ||--o{ SPECIALTY_OFFICES : "asociado"
-    
-    DOCTORS ||--o{ MEDICAL_APPOINTMENTS : "atiende"
-    PATIENTS ||--o{ MEDICAL_APPOINTMENTS : "recibe"
-    MEDICAL_OFFICES ||--o{ MEDICAL_APPOINTMENTS : "alberga"
-    
-    MEDICAL_APPOINTMENTS ||--|| MEDICAL_HISTORIES : "genera"
-    
-    MEDICAL_HISTORIES ||--o{ PRESCRIBES : "contiene"
-    MEDICINES ||--o{ PRESCRIBES : "se_receta"
+    Audit_Logs {
+        int audit_id PK
+        string table_name
+        operation_type operation_type
+        jsonb old_value
+        jsonb new_value
+        timestamp performed_at
+        string ip_address
+        int user_id FK
+    }
+
+    Roles ||--}o Users : "asigna_a"
+    Users ||--}o User_Phones : "tiene"
+    Users ||--}o User_Documents : "posee"
+    Document_Types ||--}o User_Documents : "clasifica"
+    Users ||--}o Audit_Logs : "ejecuta"
+    Departments ||--}o Specialties : "gestiona"
+    Specialties ||--}o Doctors : "asigna"
+    Schedules ||--}o Doctors : "asigna"
+    Users ||--|| Doctors : "ejerce_rol"
+    Guardians ||--}o Patients : "protege"
+    Users ||--|| Patients : "ejerce_rol"
+    Medical_Offices ||--}o Speciality_Offices : "asociado"
+    Specialties ||--}o Speciality_Offices : "vinculada"
+    Doctors ||--}o Medical_Appointments : "atiende"
+    Patients ||--}o Medical_Appointments : "recibe"
+    Medical_Offices ||--}o Medical_Appointments : "alberga"
+    Medical_Appointments ||--|| Medical_Histories : "genera"
+    Medical_Histories ||--}o Prescriptions : "contiene"
+    Medicines ||--}o Prescriptions : "se_receta"
