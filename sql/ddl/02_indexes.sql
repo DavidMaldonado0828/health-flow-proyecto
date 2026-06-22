@@ -18,8 +18,14 @@ CREATE INDEX idx_fk_appointment_patient ON Medical_Appointments(patient_id);
 CREATE INDEX idx_fk_appointment_doctor ON Medical_Appointments(doctor_id);
 CREATE INDEX idx_fk_appointment_office ON Medical_Appointments(office_id);
 CREATE INDEX idx_fk_history_appointment ON Medical_Histories(appointment_id);
+CREATE INDEX idx_fk_so_specialty ON Speciality_Offices(specialty_id);
+CREATE INDEX idx_fk_so_office ON Speciality_Offices(office_id);
 
 -- 4. Índice especial para la auditoría (JSONB)
 
 CREATE INDEX idx_audit_table_name ON Audit_Logs(table_name);
 CREATE INDEX idx_audit_performed_at ON Audit_Logs(performed_at);
+
+-- 5. Índices del dominio Infraestructura Hospitalaria (Mejora la consulta de oficinas activas)
+
+CREATE INDEX idx_offices_active ON Medical_Offices(active);

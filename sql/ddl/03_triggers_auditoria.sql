@@ -67,3 +67,15 @@ CREATE TRIGGER trg_audit_prescriptions
 AFTER INSERT OR UPDATE OR DELETE ON Prescriptions
 FOR EACH ROW
 EXECUTE FUNCTION fn_audit_log();
+
+-- Medical_Offices
+CREATE TRIGGER trg_audit_medical_offices
+AFTER INSERT OR UPDATE OR DELETE ON Medical_Offices
+FOR EACH ROW
+EXECUTE FUNCTION fn_audit_log();
+ 
+-- Speciality_Offices
+CREATE TRIGGER trg_audit_speciality_offices
+AFTER INSERT OR UPDATE OR DELETE ON Speciality_Offices
+FOR EACH ROW
+EXECUTE FUNCTION fn_audit_log();
