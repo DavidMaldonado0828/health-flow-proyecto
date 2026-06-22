@@ -1,15 +1,9 @@
 -- =====================================================
 -- SCRIPT DML - HEALTHFLOW
 -- =====================================================
+
 BEGIN;
 
--- Borrar datos en orden inverso para no romper llaves foráneas
-TRUNCATE TABLE Audit_Logs, Prescriptions, Medicines, Medical_Histories, 
-               Medical_Appointments, Speciality_Offices, Patients, Guardians, 
-               Medical_Offices, Doctors, Schedules, Specialties, Departments, 
-               User_Documents, User_Phones, Users, Document_Types, Roles 
-RESTART IDENTITY CASCADE; -- IMPORTANTE: Esto reinicia los IDs seriales a 1
-BEGIN;
 
 -- 1. ROLES (3 registros)
 INSERT INTO Roles (name) VALUES
