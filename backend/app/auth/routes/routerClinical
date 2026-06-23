@@ -1,0 +1,68 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.domain.exceptions import (
+    UserNotFoundError, SpecialtyNotFoundError, DuplicateLicenseError,
+    DoctorNotFoundError, DoctorHasPendingAppointmentsError,
+    OfficeNotCompatibleError, ScheduleOverlapError
+)
+from app.domain.service import DoctorService
+from app.schemas.request import DoctorCreateRequest, DoctorUpdateRequest, ScheduleCreateRequest
+from app.schemas.response import DoctorResponse, ScheduleResponse
+from app.infrastructure.database import get_db
+from app.infrastructure.repository_impl import (
+    DoctorRepository, SpecialtyRepository,
+    UserRepository, ScheduleRepository, OfficeRepository
+)
+from app.domain.exceptions import (
+    UserNotFoundError, SpecialtyNotFoundError, DuplicateLicenseError,
+    DoctorNotFoundError, DoctorHasPendingAppointmentsError,
+    OfficeNotCompatibleError, ScheduleOverlapError
+)
+
+router = APIRouter(prefix="/doctores", tags=["Personal Clínico"])
+
+def get_doctor_service(db: Session = Depends(get_db)):
+    return DoctorService(
+        doctor_repo=DoctorRepository(db),
+        user_repo=UserRepository(db),
+        specialty_repo=SpecialtyRepository(db),
+        schedule_repo=ScheduleRepository(db),
+        office_repo=OfficeRepository(db)
+    )
+
+@router.post("/", response_model=DoctorResponse)
+def create_doctor(data: DoctorCreateRequest, service: DoctorService = Depends(get_doctor_service)):
+    try:
+        return service.create_doctor(data.model_dump())
+    except (UserNotFoundError, SpecialtyNotFoundError, DuplicateLicenseError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Error interno")
+
+@router.put("/{doctor_id}", response_model=DoctorResponse)
+def update_doctor(doctor_id: int, data: DoctorUpdateRequest, service: DoctorService = Depends(get_doctor_service)):
+    try:
+        return service.update_doctor(doctor_id, data.model_dump(exclude_unset=True))
+    except DoctorNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DuplicateLicenseError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/{doctor_id}")
+def delete_doctor(doctor_id: int, service: DoctorService = Depends(get_doctor_service)):
+    try:
+        service.delete_doctor(doctor_id)
+        return {"message": "Doctor eliminado correctamente"}
+    except DoctorNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DoctorHasPendingAppointmentsError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/{doctor_id}/horarios", response_model=ScheduleResponse)
+def assign_schedule(doctor_id: int, data: ScheduleCreateRequest, service: DoctorService = Depends(get_doctor_service)):
+    try:
+        return service.assign_schedule(doctor_id, data.model_dump())
+    except (OfficeNotCompatibleError, ScheduleOverlapError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except DoctorNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
