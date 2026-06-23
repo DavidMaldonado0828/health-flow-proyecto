@@ -1,7 +1,7 @@
 """
 HealthFlow - CLI CRUD de Usuarios
 Conexión directa a Supabase (PostgreSQL)
-Ubicación: /scripts/crud.py
+python script/crud.py
 """
 
 import sys
